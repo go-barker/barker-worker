@@ -2,6 +2,7 @@ package worker
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"github.com/corporateanon/barker-worker/pkg/sender"
@@ -33,8 +34,13 @@ func NewWorkerImpl(botDao dao.BotDao, deliveryDao dao.DeliveryDao, sender sender
 
 func (w *WorkerImpl) Loop() error {
 	for {
-		w.tick()
-		time.Sleep(500 * time.Millisecond)
+		err := w.tick()
+		if errors.Is(err, ErrorBotEmpty) {
+			log.Println("No suitable bot for sending was found. Waiting 1 minute")
+			time.Sleep(1 * time.Minute)
+		} else {
+			time.Sleep(500 * time.Millisecond)
+		}
 	}
 }
 
@@ -61,7 +67,10 @@ func (w *WorkerImpl) tick() error {
 		return ErrorSendFailed
 	}
 
-	w.deliveryDao.SetState(deliveryTakeResult.Delivery, types.DeliveryStateSuccess)
+	err = w.deliveryDao.SetState(deliveryTakeResult.Delivery, types.DeliveryStateSuccess)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }

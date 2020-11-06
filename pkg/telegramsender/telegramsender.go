@@ -1,6 +1,8 @@
 package telegramsender
 
 import (
+	"log"
+
 	"github.com/corporateanon/barker-worker/pkg/sender"
 	"github.com/corporateanon/barker/pkg/types"
 	"github.com/go-resty/resty/v2"
@@ -17,6 +19,8 @@ func NewSenderImplTelegram(resty *resty.Client) sender.Sender {
 }
 
 func (sender *SenderImplTelegram) Send(bot *types.Bot, campaign *types.Campaign, user *types.User) error {
+	log.Printf("Sending campaign %s to user %v\n", campaign.Title, user)
+
 	payload := createSendMessagePayload(user, campaign)
 
 	res, err := sender.resty.R().
@@ -31,8 +35,10 @@ func (sender *SenderImplTelegram) Send(bot *types.Bot, campaign *types.Campaign,
 		return err
 	}
 	if httpErr := res.Error(); httpErr != nil {
+		log.Printf("Error %v\n", httpErr)
 		return httpErr.(*ErrorResponse)
 	}
+	log.Println("ok")
 
 	return nil
 }
