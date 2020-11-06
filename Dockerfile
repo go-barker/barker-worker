@@ -4,7 +4,6 @@ WORKDIR /go/src/app
 COPY go.* ./
 COPY *.go ./
 COPY pkg pkg
-COPY cmd cmd
 RUN apk add --no-cache git
 RUN apk add build-base
 RUN go get -d -v ./...
